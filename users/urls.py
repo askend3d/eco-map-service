@@ -3,8 +3,9 @@ from rest_framework.routers import DefaultRouter
 
 from users.views import UserViewSet, OrganizationViewSet
 
-router = DefaultRouter()
-router.register(r'', UserViewSet, basename='user')
-router.register(r'organizations', OrganizationViewSet, basename='organization')
+user_router = DefaultRouter()
+user_router.register(r'', UserViewSet, basename='user')
 
-urlpatterns = router.urls
+organization_router = DefaultRouter()
+organization_router.register(r'', OrganizationViewSet, basename='organization')
+
