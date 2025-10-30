@@ -3,25 +3,45 @@ from rest_framework import serializers
 from users.models import User, Organization
 
 
-class OrganizationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Organization
-        fields = ['id', 'name', 'kind', 'contact_email', 'is_active']
-
-
 class UserSerializer(serializers.ModelSerializer):
-    organization = OrganizationSerializer(read_only=True)  # для отображения организации
-    organization_id = serializers.PrimaryKeyRelatedField(
-        queryset=Organization.objects.all(),
-        source='organization',
-        write_only=True,
-        required=False,
-        allow_null=True
+    organization = serializers.PrimaryKeyRelatedField(
+        read_only=True
     )
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'organization', 'organization_id']
+        fields = ['id', 'username', 'email', 'role', 'organization']
+
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    members = UserSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Organization
+        fields = [
+            'id', 'name', 'kind', 'contact_email',
+            'description', 'region', 'is_active', 'members'
+        ]
+
+
+class AddMemberSerializer(serializers.Serializer):
+    """Сериализатор для добавления пользователя по username или email"""
+    username_or_email = serializers.CharField()
+
+    @staticmethod
+    def validate_username_or_email(value):
+        user = User.objects.filter(username=value).first() or User.objects.filter(email=value).first()
+        if not user:
+            raise serializers.ValidationError("Пользователь не найден.")
+        return user
+
+    def save(self, organization):
+        user = self.validated_data['username_or_email']
+        if isinstance(user, str):
+            user = User.objects.filter(username=user).first() or User.objects.filter(email=user).first()
+        user.organization = organization
+        user.save()
+        return user
 
 
 class RegisterSerializer(serializers.ModelSerializer):
