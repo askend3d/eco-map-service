@@ -68,11 +68,7 @@ class PollutionPointViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         new_status = serializer.validated_data['status']
 
-        if not user.organization:
-            return Response(
-                {"detail": "Вы должны состоять в организации, чтобы менять статус."},
-                status=status.HTTP_403_FORBIDDEN
-            )
+       
 
         point.status = new_status
         point.handled_by = user.organization
