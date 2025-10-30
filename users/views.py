@@ -6,7 +6,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth import get_user_model
 from .models import User, Organization
 from .serializers import UserSerializer, RegisterSerializer, OrganizationSerializer, LoginSerializer, \
-    AddMemberSerializer
+    AddMemberSerializer, UserProfileSerializer
 
 User = get_user_model()
 
@@ -52,9 +52,9 @@ class UserViewSet(mixins.CreateModelMixin,
     def me(self, request):
         user = request.user
         if request.method == 'GET':
-            serializer = UserSerializer(user)
+            serializer = UserProfileSerializer(user)
             return Response(serializer.data)
-        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer = UserProfileSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -70,7 +70,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        # Создатель автоматически становится участником организации
         org = serializer.save()
         request_user = self.request.user
         request_user.organization = org

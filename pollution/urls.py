@@ -1,8 +1,12 @@
-from rest_framework.routers import DefaultRouter
+from rest_framework_nested import routers
 from .views import PollutionPointViewSet, CommentViewSet
 
-router = DefaultRouter()
-router.register(r'points', PollutionPointViewSet)
-router.register(r'comments', CommentViewSet)
+# основной роутер
+router = routers.SimpleRouter()
+router.register(r'points', PollutionPointViewSet, basename='points')
 
-urlpatterns = router.urls
+# вложенный роутер для комментариев
+points_router = routers.NestedSimpleRouter(router, r'points', lookup='point')
+points_router.register(r'comments', CommentViewSet, basename='point-comments')
+
+urlpatterns = router.urls + points_router.urls

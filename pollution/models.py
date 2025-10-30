@@ -1,6 +1,7 @@
 from django.db import models
 
 from config.settings import AUTH_USER_MODEL
+from users.models import Organization
 
 
 class PollutionPoint(models.Model):
@@ -26,6 +27,14 @@ class PollutionPoint(models.Model):
         related_name='pollution_reports'
     )
     pollution_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    handled_by = models.ForeignKey(
+        Organization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='handled_points',
+        verbose_name="Организация, обрабатывающая точку"
+    )
     description = models.TextField(blank=True)
     latitude = models.FloatField()
     longitude = models.FloatField()

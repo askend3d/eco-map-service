@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import PollutionPoint, Comment
-from .serializers import PollutionPointSerializer, CommentSerializer
+from .serializers import PollutionPointSerializer, CommentSerializer, PollutionStatusSerializer
 
 
 class PollutionPointViewSet(viewsets.ModelViewSet):
@@ -42,11 +42,43 @@ class PollutionPointViewSet(viewsets.ModelViewSet):
             serializer.save(author=request.user, point=point)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @action(
+        detail=True,
+        methods=['patch'],
+        permission_classes=[permissions.IsAuthenticated],
+        url_path='set-status',
+        serializer_class=PollutionStatusSerializer
+    )
+    def set_status(self, request, pk=None):
+        """Изменить статус точки (в работе / очищено)."""
+        point = self.get_object()
+        user = request.user
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_status = serializer.validated_data['status']
+
+        if not user.organization:
+            return Response(
+                {"detail": "Вы должны состоять в организации, чтобы менять статус."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        point.status = new_status
+        point.handled_by = user.organization
+        point.save()
+
+        return Response(PollutionPointSerializer(point).data)
+
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all().order_by('-created_at')
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        point_id = self.kwargs.get('point_pk')
+        return Comment.objects.filter(point_id=point_id).order_by('-created_at')
+
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        point_id = self.kwargs.get('point_pk')
+        serializer.save(author=self.request.user, point_id=point_id)

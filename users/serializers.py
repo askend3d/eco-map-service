@@ -24,6 +24,20 @@ class OrganizationSerializer(serializers.ModelSerializer):
         ]
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    organization = OrganizationSerializer(read_only=True)
+    pollution_reports = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'role', 'organization', 'pollution_reports']
+
+    def get_pollution_reports(self, obj):
+        from pollution.serializers import PollutionPointSerializer
+        pollution_points = obj.pollution_reports.all()
+        return PollutionPointSerializer(pollution_points, many=True).data
+
+
 class AddMemberSerializer(serializers.Serializer):
     """Сериализатор для добавления пользователя по username или email"""
     username_or_email = serializers.CharField()
