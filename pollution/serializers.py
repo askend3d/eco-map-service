@@ -16,13 +16,32 @@ class PollutionPointSerializer(serializers.ModelSerializer):
     handled_by = OrganizationSerializer(read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
 
+    anonymous_name = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = PollutionPoint
         fields = [
-            'id', 'reporter', 'pollution_type', 'description',
-            'latitude', 'longitude', 'photo', 'status',
+            'id',
+            'reporter',
+            'anonymous_name',
+            'pollution_type',
+            'description',
+            'latitude',
+            'longitude',
+            'photo',
+            'status',
             'handled_by',
-            'created_at', 'updated_at', 'comments'
+            'created_at',
+            'updated_at',
+            'comments',
+        ]
+        read_only_fields = [
+            'reporter',
+            'status',
+            'handled_by',
+            'created_at',
+            'updated_at',
+            'comments',
         ]
 
 

@@ -11,6 +11,7 @@ class PollutionPoint(models.Model):
         ('trash', 'Бытовой мусор'),
         ('oil', 'Нефтяное пятно'),
         ('industrial', 'Промышленные отходы'),
+        ('chemical', 'Химикаты'),
         ('plastic', 'Пластик'),
         ('other', 'Другое'),
     )
@@ -24,8 +25,11 @@ class PollutionPoint(models.Model):
     reporter = models.ForeignKey(
         AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='pollution_reports'
+        related_name='pollution_reports',
+        null=True,
+        blank=True
     )
+    anonymous_name = models.CharField(max_length=255, blank=True, null=True)
     pollution_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     handled_by = models.ForeignKey(
         Organization,
@@ -40,11 +44,16 @@ class PollutionPoint(models.Model):
     longitude = models.FloatField()
     photo = models.ImageField(upload_to='pollution_photos/', blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
+
+    started_at = models.DateTimeField(blank=True, null=True, verbose_name="Дата начала работ")
+    cleaned_at = models.DateTimeField(blank=True, null=True, verbose_name="Дата очистки")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.get_pollution_type_display()} ({self.latitude}, {self.longitude})"
+        name = self.reporter.username if self.reporter else self.anonymous_name or "Аноним"
+        return f"{self.get_pollution_type_display()} ({self.latitude}, {self.longitude}) — {name}"
 
 
 class Comment(models.Model):

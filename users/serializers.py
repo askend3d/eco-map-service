@@ -60,16 +60,10 @@ class AddMemberSerializer(serializers.Serializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
-    organization_id = serializers.PrimaryKeyRelatedField(
-        queryset=Organization.objects.all(),
-        source='organization',
-        required=False,
-        allow_null=True
-    )
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'password', 'role', 'organization_id']
+        fields = ['first_name', 'last_name', 'username', 'email', 'password', 'role']
 
     def create(self, validated_data):
         user = User.objects.create_user(
@@ -79,7 +73,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             email=validated_data.get('email', ''),
             password=validated_data['password'],
             role=validated_data.get('role', 'citizen'),
-            organization=validated_data.get('organization', None)
         )
         return user
 
