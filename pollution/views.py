@@ -9,7 +9,6 @@ from .serializers import PollutionPointSerializer, CommentSerializer, PollutionS
 class PollutionPointViewSet(viewsets.ModelViewSet):
     queryset = PollutionPoint.objects.all().order_by('-created_at')
     serializer_class = PollutionPointSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(reporter=self.request.user)
