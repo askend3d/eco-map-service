@@ -1,11 +1,12 @@
-from rest_framework import mixins, viewsets, status
+from rest_framework import mixins, viewsets, status, permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth import login, logout
 from django.contrib.auth import get_user_model
 from .models import User, Organization
-from .serializers import UserSerializer, RegisterSerializer, OrganizationSerializer, LoginSerializer
+from .serializers import UserSerializer, RegisterSerializer, OrganizationSerializer, LoginSerializer, \
+    AddMemberSerializer
 
 User = get_user_model()
 
@@ -59,12 +60,47 @@ class UserViewSet(mixins.CreateModelMixin,
         return Response(serializer.data)
 
 
-class OrganizationViewSet(mixins.ListModelMixin,
-                          mixins.CreateModelMixin,
-                          viewsets.GenericViewSet):
+class OrganizationViewSet(viewsets.ModelViewSet):
     """
-    Управление организациями: просмотр списка и создание новой
+    Управление организациями: просмотр списка, создание, редактирование,
+    добавление участников.
     """
-    queryset = Organization.objects.all()
+    queryset = Organization.objects.all().order_by('-created_at')
     serializer_class = OrganizationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Создатель автоматически становится участником организации
+        org = serializer.save()
+        request_user = self.request.user
+        request_user.organization = org
+        request_user.save()
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def add_member(self, request, pk=None):
+        """
+        Добавить пользователя по username или email в организацию.
+        """
+        org = self.get_object()
+        # Только члены организации могут добавлять новых
+        if request.user.organization != org and request.user.role != 'admin':
+            return Response({"detail": "Нет прав добавлять участников в эту организацию."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        serializer = AddMemberSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save(organization=org)
+        return Response(
+            {"detail": f"Пользователь {user.username} добавлен в организацию {org.name}."},
+            status=status.HTTP_200_OK
+        )
+
+    @action(detail=True, methods=['get'])
+    def members(self, request, pk=None):
+        """
+        Получить список участников организации.
+        """
+        org = self.get_object()
+        members = org.members
+        serializer = UserSerializer(members, many=True)
+        return Response(serializer.data)
