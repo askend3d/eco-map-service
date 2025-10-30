@@ -1,0 +1,43 @@
+# Byte-code files
+*.pyc
+__pycache__/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Database files
+*.sqlite3
+db.sqlite3
+
+# Media and static files (if managed by Django, but not committed to Git)
+media/
+static_collected/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Environment variables and sensitive data
+.env
+*.ini
+*.json  # Be cautious with this, only if truly sensitive and not meant for repo
+local_settings.py
+
+# Logs
+*.log
+
+# Test and coverage files
+.coverage
+htmlcov/
+
+# Build artifacts
+dist/
+build/
+
+# Django-specific temporary files
+*.pot
+*.mo
