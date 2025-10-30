@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'organization']
+        fields = ['id', 'username', 'photo', 'email', 'role', 'organization']
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -30,7 +30,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'organization', 'pollution_reports']
+        fields = ['id', 'username', 'email', 'role', 'photo', 'organization', 'pollution_reports']
 
     def get_pollution_reports(self, obj):
         from pollution.serializers import PollutionPointSerializer
@@ -60,6 +60,7 @@ class AddMemberSerializer(serializers.Serializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
+
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'role']
