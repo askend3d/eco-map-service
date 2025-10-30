@@ -32,8 +32,21 @@ class User(AbstractUser):
         ('ngo', 'Экоактивист / НКО'),
         ('admin', 'Администратор'),
     )
+
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='citizen')
-    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True)
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    photo = models.ImageField(
+        upload_to='profile_photos/',
+        blank=True,
+        null=True,
+        verbose_name='Фото профиля'
+    )
 
     def __str__(self):
         return f"{self.username}"

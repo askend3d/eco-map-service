@@ -59,6 +59,37 @@ class UserViewSet(mixins.CreateModelMixin,
         serializer.save()
         return Response(serializer.data)
 
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[permissions.IsAuthenticated],
+        url_path='upload-photo'
+    )
+    def upload_photo(self, request):
+        """Загрузка или обновление фото профиля"""
+        user = request.user
+        photo = request.FILES.get('photo')
+
+        if not photo:
+            return Response(
+                {"detail": "Необходимо передать файл 'photo'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if user.photo:
+            user.photo.delete(save=False)
+
+        user.photo = photo
+        user.save()
+
+        return Response(
+            {
+                "detail": "Фото успешно обновлено.",
+                "photo": request.build_absolute_uri(user.photo.url)
+            },
+            status=status.HTTP_200_OK
+        )
+
 
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
